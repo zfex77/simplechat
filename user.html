@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleChat Online List</title>
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">SimpleChat Online List</h1>
+        <div class="alert alert-warning">
+            <p class="mb-0">If a user you know is not responding to any messages, it is possible that they are either IDLE or OFFLINE. At the current time, there is no way to check if a user is online or offline. If they choose to appear as offline, they will go offline.</p>
+        </div>
+        <ul id="user-presence-list" class="list-group"></ul>
+    </div>
+
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.29.9.min.js"></script>
+    <script>
+        const subscribeKey = 'sub-c-1e31862d-744e-4817-a27c-1d0a6b73080a';
+        const userPresenceChannel = 'user-presence-channel'; // Use the same channel name
+
+        const pubnub = new PubNub({
+            subscribeKey: subscribeKey
+        });
+
+        const userPresenceList = document.getElementById('user-presence-list');
+        let userLastHeartbeat;
+
+        // Load online users from localStorage
+        const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || {};
+
+        pubnub.addListener({
+            message: function (event) {
+                const presenceData = event.message;
+                updateUserPresence(presenceData);
+            }
+        });
+
+        function updateUserPresence(presenceData) {
+            if (presenceData.state === 'online') {
+                onlineUsers[presenceData.username] = true;
+            } else {
+                delete onlineUsers[presenceData.username];
+            }
+
+            updateListDisplay();
+        }
+
+        function updateListDisplay() {
+            userPresenceList.innerHTML = '';
+
+            for (const username in onlineUsers) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `- ${username} is online 🟢`;
+                listItem.classList.add('list-group-item');
+                userPresenceList.appendChild(listItem);
+            }
+
+            // Save online users in localStorage
+            localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+        }
+
+        pubnub.subscribe({
+            channels: [userPresenceChannel],
+            withPresence: true // Enable presence
+        });
+
+        // Send session heartbeat to main HTML page
+        function sendSessionHeartbeat() {
+            window.parent.postMessage('heartbeat', '*');
+        }
+
+        setInterval(sendSessionHeartbeat, 5000); // Every 5 seconds
+
+        // Load online users initially
+        pubnub.history(
+            {
+                channel: userPresenceChannel,
+                count: 100, // Adjust as needed
+                includeTimetoken: false
+            },
+            function (status, response) {
+                if (status.error) {
+                    console.error('Error fetching history:', status);
+                    return;
+                }
+
+                response.messages.forEach(message => {
+                    const presenceData = message.entry;
+                    if (presenceData.state === 'online') {
+                        onlineUsers[presenceData.username] = true;
+                    }
+                });
+
+                updateListDisplay();
+            }
+        );
+
+        // Check user presence based on heartbeat
+        function checkUserPresence() {
+            const currentTime = new Date().getTime();
+            if (userLastHeartbeat && currentTime - userLastHeartbeat > 10000) {
+                updateUserPresence({ username: localStorage.getItem('username'), state: 'offline' });
+            }
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.data === 'heartbeat') {
+                userLastHeartbeat = new Date().getTime();
+                updateUserPresence({ username: localStorage.getItem('username'), state: 'online' });
+            }
+        });
+
+        setInterval(checkUserPresence, 5000); // Every 5 seconds
+    </script>
+</body>
+</html>
