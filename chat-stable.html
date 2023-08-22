@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="https://github.com/zfex77/simplehtmls/blob/main/src/logo3.png?raw=true" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.29.9.min.js"></script>
+	    <style>
+        .message-container {
+            word-wrap: break-word;
+        }
+        .message-container img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Simple Chat</h1>
+        <div id="chat-container">
+            <div id="messages" class="mb-3"></div>
+            <div id="username-container" class="mb-2">
+                <input type="text" id="username-input" class="form-control" placeholder="Set your username...">
+                <button id="set-username-button" class="btn btn-primary mt-2">Set Username</button>
+                <div id="username-warning" class="text-danger mt-2"></div>
+            </div>
+            <input type="text" id="message-input" class="form-control mb-2" placeholder="Type your message...">
+            <button id="send-button" class="btn btn-primary">Send</button>
+            <hr>
+            <h4 class="mb-3">Create Channel</h4>
+            <button id="create-channel-button" class="btn btn-success">Create Channel</button>
+            <div id="channel-info" class="mt-2"></div>
+        </div>
+    </div>
+	
+	
+
+    <script>
+        const publishKey = 'pub-c-681d632c-989f-4a2d-9076-e70e1ea2c214';
+        const subscribeKey = 'sub-c-1e31862d-744e-4817-a27c-1d0a6b73080a';
+        const globalChannelName = 'simple-chat-channel';
+        const channelTTL = 60 * 5; // Retain message history for 5 minutes (in seconds)
+        const usernameLocalStorageKey = 'simple-chat-username';
+
+        const pubnub = new PubNub({
+            publishKey: publishKey,
+            subscribeKey: subscribeKey
+        });
+
+        const messagesContainer = document.getElementById('messages');
+        const usernameInput = document.getElementById('username-input');
+        const setUsernameButton = document.getElementById('set-username-button');
+        const usernameWarning = document.getElementById('username-warning');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const createChannelButton = document.getElementById('create-channel-button');
+        const channelInfo = document.getElementById('channel-info');
+
+        let currentChannel = globalChannelName;
+        let autoDeleteTimeout;
+        const messageHistory = [];
+
+        function displayMessage(username, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('alert', 'alert-secondary', 'mb-2');
+            messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+            messagesContainer.appendChild(messageElement);
+            messageHistory.push({ username, message });
+            if (messageHistory.length > channelTTL) {
+                messageHistory.shift();
+            }
+        }
+
+        function sendMessage(channel, username, message) {
+            pubnub.publish({
+                channel: channel,
+                message: { username, message },
+            });
+        }
+
+        function createChannel() {
+            const newChannelName = `custom-channel-${Math.random().toString(36).substring(7)}`;
+            const channelTTLInfo = `Message history will be retained for 5 minutes.`;
+
+            // Set a timeout to delete the channel after 1 day of inactivity
+            clearTimeout(autoDeleteTimeout);
+            autoDeleteTimeout = setTimeout(() => {
+                if (currentChannel === newChannelName) {
+                    messagesContainer.innerHTML = '';
+                    currentChannel = globalChannelName;
+                    messageHistory.length = 0;
+                }
+            }, channelTTL * 1000);
+
+            return newChannelName;
+        }
+		
+		        function displayMessage(username, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message-container', 'alert', 'alert-secondary', 'mb-2');
+            
+            // Check if the message is an image link
+            if (message.match(/\.(jpeg|jpg|gif|png)$/) !== null) {
+                messageElement.innerHTML = `<strong>${username}:</strong><br><img src="${message}" alt="Sent Image">`;
+            } else {
+                messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+            }
+            
+            messagesContainer.appendChild(messageElement);
+            messageHistory.push({ username, message });
+            if (messageHistory.length > channelTTL) {
+                messageHistory.shift();
+            }
+        }
+
+        sendButton.addEventListener('click', () => {
+            const username = localStorage.getItem(usernameLocalStorageKey);
+            const message = messageInput.value;
+            if (!username) {
+                alert('Please set your username first.');
+                return;
+            }
+            if (message.trim() === '') {
+                return;
+            }
+            sendMessage(currentChannel, username, message);
+            messageInput.value = '';
+        });
+
+        createChannelButton.addEventListener('click', () => {
+            messagesContainer.innerHTML = ''; // Clear previous channel's messages
+            currentChannel = createChannel();
+            const shareableLink = `${window.location.href}?channel=${currentChannel}`;
+            channelInfo.innerHTML = `Share this link with others:<br><strong>${shareableLink}</strong><br><br><em>You will be redirected to the new channel shortly...</em>`;
+            setTimeout(() => {
+                window.location.href = shareableLink;
+            }, 2000); // Redirect after 2 seconds
+        });
+
+        pubnub.addListener({
+            message: function(event) {
+                const receivedMessage = event.message;
+                displayMessage(receivedMessage.username, receivedMessage.message);
+            }
+        });
+
+        messageInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                const username = localStorage.getItem(usernameLocalStorageKey);
+                const message = messageInput.value;
+                if (!username) {
+                    alert('Please set your username first.');
+                    return;
+                }
+                if (message.trim() === '') {
+                    return;
+                }
+                sendMessage(currentChannel, username, message);
+                messageInput.value = '';
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const customChannel = urlParams.get('channel');
+        if (customChannel) {
+            channelInfo.innerHTML = `You are in a custom channel: ${customChannel}`;
+            currentChannel = customChannel;
+            pubnub.subscribe({
+                channels: [customChannel]
+            });
+        } else {
+            pubnub.subscribe({
+                channels: [globalChannelName]
+            });
+        }
+
+        // Display message history on page load
+        messageHistory.forEach(message => {
+            displayMessage(message.username, message.message);
+        });
+
+        let usernameHasBeenSet = false;
+        
+        setUsernameButton.addEventListener('click', () => {
+            if (!usernameHasBeenSet) {
+                usernameWarning.innerHTML = 'Setting your username is <strong>permanent</strong>.<br>Click the button again if you understand.';
+                usernameHasBeenSet = true;
+            } else {
+                const newUsername = usernameInput.value;
+                if (newUsername.trim() === '') {
+                    usernameWarning.textContent = 'Please enter a valid username.';
+                    return;
+                }
+                localStorage.setItem(usernameLocalStorageKey, newUsername);
+                usernameInput.disabled = true;
+                setUsernameButton.style.display = 'none';
+            }
+        });
+
+        // Check if username is set in localStorage
+        const storedUsername = localStorage.getItem(usernameLocalStorageKey);
+        if (storedUsername) {
+            usernameInput.value = storedUsername;
+            usernameInput.disabled = true; // Disable the input field after setting the username
+            setUsernameButton.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
