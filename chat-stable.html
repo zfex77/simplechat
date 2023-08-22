@@ -15,9 +15,22 @@
         .message-container img {
             max-width: 100%;
         }
+        /* Add styles for the settings button */
+        #settings-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
     </style>
+
 </head>
 <body>
+<a id="settings-button" href="https://simplechat.pages.dev/user" target="_blank">
+        <img src="https://www.iconpacks.net/icons/1/free-users-icon-267-thumb.png" alt="Settings" width="30" height="30">
+    </a>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Simple Chat</h1>
         <div id="chat-container">
@@ -33,9 +46,14 @@
             <h4 class="mb-3">Create Channel</h4>
             <button id="create-channel-button" class="btn btn-success">Create Channel</button>
             <div id="channel-info" class="mt-2"></div>
+        <div id="presence-container" class="mb-2">
+            <label for="presence-select">Set Presence:</label>
+            <select id="presence-select" class="form-control">
+                <option value="online">🟢Online</option>
+                <option value="offline">⚫Appear as Offline</option>
+            </select>
         </div>
     </div>
-	
 	
 
     <script>
@@ -58,6 +76,8 @@
         const sendButton = document.getElementById('send-button');
         const createChannelButton = document.getElementById('create-channel-button');
         const channelInfo = document.getElementById('channel-info');
+
+
 
         let currentChannel = globalChannelName;
         let autoDeleteTimeout;
@@ -129,6 +149,56 @@
             sendMessage(currentChannel, username, message);
             messageInput.value = '';
         });
+
+        const presenceSelect = document.getElementById('presence-select');
+        let sessionHeartbeatInterval;
+
+        function setPresence(presenceState) {
+            const username = localStorage.getItem(usernameLocalStorageKey);
+
+            if (!username) {
+                alert('Please set your username first.');
+                return;
+            }
+
+            const presenceData = {
+                username,
+                state: presenceState
+            };
+
+            pubnub.publish({
+                channel: 'user-presence-channel', // Use a separate channel for user presence
+                message: presenceData
+            });
+
+            // Update presence in localStorage
+            localStorage.setItem('currentPresence', presenceState);
+        }
+
+        function sendSessionHeartbeat() {
+            // Send a heartbeat signal to the session
+            window.parent.postMessage('heartbeat', '*');
+        }
+
+        presenceSelect.addEventListener('change', () => {
+            const selectedPresence = presenceSelect.value;
+            setPresence(selectedPresence);
+        });
+
+        // Send session heartbeat periodically
+        sessionHeartbeatInterval = setInterval(sendSessionHeartbeat, 5000); // Every 5 seconds
+
+        // Automatically set presence to offline when leaving the page
+        window.addEventListener('beforeunload', () => {
+            setPresence('offline');
+            clearInterval(sessionHeartbeatInterval);
+        });
+
+        // Load initial presence state
+        const initialPresence = localStorage.getItem('currentPresence');
+        if (initialPresence) {
+            presenceSelect.value = initialPresence;
+        }
 
         createChannelButton.addEventListener('click', () => {
             messagesContainer.innerHTML = ''; // Clear previous channel's messages
