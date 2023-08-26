@@ -1,7 +1,6 @@
 ![simp chat](https://github.com/zfex77/simplechat/assets/139940269/b7e5ccc1-6466-4b00-a137-90c671babb06)
 ***
-A quite simple chat application that
-uses the PubNub API.
+A quite simple chat application that uses the PubNub API. Part of the [SimpleHTMLs](https://github.com/zfex77/simplehtmls) project.
 
 - Managed and edited by [zfex77](https://github.com/zfex77) (me)
 - Contributions by [Socrates](https://github.com/ramenwithparmesancheese)
@@ -22,11 +21,12 @@ uses the PubNub API.
 > For now, that is all you need to know! Quite simple, amirite!
 
 ## Lacking Features/Bugs
-- 🕷️ Message history does not work. At all.
-- 🕷️ Resetting cookies will allow for resetting username.
-- 🛠️ Merge with [Socrates](https://github.com/ramenwithparmesancheese) edits.
-- 🛠️ Add dark mode.
-- 🛠️ Add functionality for pasting images from clipboard.
-- 🛠️ Add functionality for all kinds of image formats.
-- 🛠️ Make accounts and preventing same usernames with system like discord. (WILL NOT BE OUT FOR A COUPLE OF WEEKS)
+- 🕷️ Message history does not work. At all. (ETA: 1 week)
+- 🕷️ Resetting cookies will allow for resetting username. **(ETA: 1 week)**
+- 🛠️ Add dark mode. **(ETA: 1 week)**
+- 🛠️ Add functionality for pasting images from clipboard. **(ETA: 1 week)**
+- 🛠️ Add functionality for all kinds of image formats. **(ETA: 1 week)**
+- 🛠️ Make accounts and preventing same usernames with system like discord. **(ETA: 5 - 14 weeks)**
 
+### Active Instances
+- [CabbageBar](https://github.com/ramenwithparmesancheese/CabbageBar/). Meant to be an alternative to google chat for the Aurora Public Schools District.
