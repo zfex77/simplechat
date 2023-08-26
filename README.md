@@ -7,6 +7,7 @@ uses the PubNub API.
 - Contributions by [Socrates](https://github.com/ramenwithparmesancheese)
 
 > ⚠️ I am not responsible for what users do, or say on this platform. **More importantly, I am using a free PubNub account, therefore if I reach a certain limit the application will stop working.**
+
 > **BEFORE USING THIS PLATFORM,** READ THE [TERMS OF SERVICE](https://github.com/zfex77/simplechat/blob/main/docs/tos.md) TO BE INFORMED ON HOW YOU CAN USE THIS SERVICE.
 
 ## How do I use the site?
