@@ -1,5 +1,7 @@
-# SimpleChat!
-A quite simple chat application that uses the PubNub API.
+![simp chat](https://github.com/zfex77/simplechat/assets/139940269/b7e5ccc1-6466-4b00-a137-90c671babb06)
+***
+A quite simple chat application that
+uses the PubNub API.
 
 - Managed and edited by [zfex77](https://github.com/zfex77) (me)
 - Contributions by [Socrates](https://github.com/ramenwithparmesancheese)
@@ -19,8 +21,10 @@ A quite simple chat application that uses the PubNub API.
 
 ## Lacking Features/Bugs
 - 🕷️ Message history does not work. At all.
+- 🕷️ Resetting cookies will allow for resetting username.
 - 🛠️ Merge with [Socrates](https://github.com/ramenwithparmesancheese) edits.
 - 🛠️ Add dark mode.
 - 🛠️ Add functionality for pasting images from clipboard.
+- 🛠️ Add functionality for all kinds of image formats.
 - 🛠️ Make accounts and preventing same usernames with system like discord. (WILL NOT BE OUT FOR A COUPLE OF WEEKS)
 
