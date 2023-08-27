@@ -21,8 +21,9 @@ A quite simple chat application that uses the PubNub API. Part of the [SimpleHTM
 > For now, that is all you need to know! Quite simple, amirite!
 
 ## Lacking Features/Bugs
-- 🕷️ Message history does not work. At all. (ETA: 1 week)
+- 🕷️ Message history does not work. At all. **(ETA: 1 week)**
 - 🕷️ Resetting cookies will allow for resetting username. **(ETA: 1 week)**
+- 🕷️ HTML displaying in messages. See [#1](https://github.com/zfex77/simplechat/blob/alt-main/docs/t/1.md) for more info. **(ETA: 1 - 2 weeks)**
 - 🛠️ Add dark mode. **(ETA: 1 week)**
 - 🛠️ Add functionality for pasting images from clipboard. **(ETA: 1 week)**
 - 🛠️ Add functionality for all kinds of image formats. **(ETA: 1 week)**
